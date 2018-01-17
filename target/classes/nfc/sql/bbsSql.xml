@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="nfc.bbs">
+  <insert id="bbsWrite" parameterType="Map">
+  	insert into nfc_review values(review_idx.nextval,0,0,
+  	#{dto.review_writer},
+  	#{dto.review_subject},
+  	#{dto.review_content},
+  	#{star},
+  	sysdate,#{dto.review_img})
+  </insert>
+  <select id="bbsList" resultType="nfc.bbs.model.BbsDTO" parameterType="Map">
+  	select * from (select rownum as rnum, a.* from (select * from nfc_review order by review_idx desc)a)b
+  	where rnum<![CDATA[>=]]>#{startnum} and rnum<![CDATA[<=]]>#{endnum}
+  </select>
+  <select id="bbsList2" resultType="nfc.bbs.model.BbsDTO" parameterType="Map">
+  	select * from (select rownum as rnum, a.* from (select * from nfc_review where shop_idx=#{shop_idx} order by review_idx desc)a)b
+  	where rnum<![CDATA[>=]]>#{startnum} and rnum<![CDATA[<=]]>#{endnum}
+  </select>
+  <select id="bbsContent" resultType="nfc.bbs.model.BbsDTO" parameterType="int">
+  select * from nfc_review where review_idx=#{review_idx}
+  </select>
+  <select id="bbsTotalCnt" resultType="int">
+  	select count(*) from nfc_review
+  </select>
+  <select id="bbsShop" parameterType="int" resultType="nfc.shop.model.ShopDTO">
+        select * from nfc_shop where shop_idx=#{shop_idx}
+   </select>
+   <delete id="bbsDel" parameterType="int">
+		delete from nfc_review where review_idx=#{review_idx}
+	</delete>
+	<update id="bbsUpdate" parameterType="Map">
+		update nfc_review set review_content=#{dto.review_content}, review_subject=#{dto.review_subject}, review_img=#{dto.review_img}, review_gpa=#{star} where review_idx=#{review_idx}
+	</update>
+	<select id="bookPage" parameterType="Map" resultType="nfc.shop.model.ShopDTO">
+       select * from(select rownum as rnum,a.* from (select * from nfc_shop order by shop_idx)a)
+	</select>
+	<select id="shopReview" parameterType="int" resultType="nfc.bbs.model.BbsDTO">
+		select * from nfc_review where ROWNUM<![CDATA[<=3]]> and shop_idx=#{shop_idx} order by review_date desc
+	</select>
+	
+</mapper>

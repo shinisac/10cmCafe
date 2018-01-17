@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nfc.shop">
+	<select id="shoparea" resultType="nfc.shop.model.ShopDTO" parameterType="String">
+		select * from nfc_shop where shop_area Like '%' || #{addr} || '%' and shop_idx<![CDATA[>]]>0
+	</select>
+	
+	<select id="lookshop" resultType="nfc.shop.model.ShopDTO" parameterType="int">
+		select * from nfc_shop where shop_idx=#{idx} 
+	</select>
+	<select id="shopname" resultType="nfc.shop.model.ShopDTO" parameterType="String">
+		select * from nfc_shop where shop_name Like '%' || #{name} || '%' and shop_idx<![CDATA[>]]>0
+	</select>
+	<select id="shopcategory" resultType="nfc.shop.model.CategoryDTO">
+		select * from nfc_category order by category_turn
+	</select>
+	<select id="shopmenuList" resultType="nfc.shop.model.MenuDTO" parameterType="int">
+		select * from nfc_menu where menu_category=#{idx}
+	</select>
+	<select id="menuContent" resultType="nfc.shop.model.MenuDTO" parameterType="int">
+		select * from nfc_menu where menu_idx=#{idx}
+	</select>
+	<insert id="adminshopAdd" parameterType="nfc.shop.model.ShopDTO">
+	 	insert into nfc_shop values(nfc_shop_idx.nextval,#{shop_name},#{shop_area},#{shop_addr},#{shop_tel},#{shop_img},#{shop_lat},#{shop_lng})
+	</insert>	
+	<select id="adminshopList" resultType="nfc.shop.model.ShopDTO" parameterType="Map">
+			select * from
+			(select rownum as rnum,a.* from
+			(select * from nfc_shop where shop_idx <![CDATA[<>]]>0 )a)b
+			where rnum<![CDATA[>=]]>#{startnum}
+			and rnum<![CDATA[<=]]>#{endnum}
+	</select>
+	<select id="adminshoptotal" resultType="int">
+		select count(*) from nfc_shop where shop_idx<![CDATA[<>]]>0
+	</select>	
+	<delete id="shopDel" parameterType="int">
+		delete from nfc_shop where shop_idx=#{idx}
+	</delete>
+	<update id="admin_shopupdate" parameterType="nfc.shop.model.ShopDTO">
+		update nfc_shop set shop_name=#{shop_name},shop_area=#{shop_area},shop_addr=#{shop_addr},shop_tel=#{shop_tel},shop_img=#{shop_img},shop_lat=#{shop_lat},shop_lng=#{shop_lng} where shop_idx=#{shop_idx}
+	</update>
+	<select id="shopList" resultType="nfc.shop.model.ShopDTO">
+		select * from nfc_shop where shop_idx <![CDATA[>]]>0
+	</select>
+	<select id="menuCategory" resultType="nfc.admin.category.model.CategoryDTO">
+		select * from nfc_category where category_idx=#{idx}
+	</select>
+	<select id="menuList2" resultType="nfc.shop.model.MenuDTO" parameterType="int">
+		select * from nfc_menu where menu_category=#{idx}
+	</select>
+	<select id="menuContent2" resultType="nfc.shop.model.MenuDTO" parameterType="map">
+		select a.*,NVL2(b.member_idx,1,0) book from nfc_menu a,(select * from nfc_menu_book where member_idx=#{member_idx}) b where a.menu_idx = b.menu_idx(+) and a.menu_idx=#{menu_idx}
+	</select>
+	<insert id="storeAdd" parameterType="nfc.shop.model.ShopDTO">
+	 	insert into nfc_shop values(nfc_shop_idx.nextval,#{shop_name},#{shop_area},#{shop_addr},#{shop_tel},#{shop_img},#{shop_lat},#{shop_lng})
+	</insert>
+	<select id="loadMenu" resultType="nfc.shop.model.MenuDTO">
+		select * from nfc_menu where menu_category=(select MIN(category_idx) from nfc_category)
+	</select>
+	 <select id="shopnamefind" parameterType="Map" resultType="nfc.shop.model.ShopDTO">
+   		select shop_name from nfc_shop where shop_idx=#{shop_idx}
+   </select>
+</mapper> 

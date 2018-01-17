@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nfc.admin_member">
+	<select id="adminmemberSelect" parameterType="nfc.admin_member.model.Admin_memberDTO" resultType="String">
+		select admin_member_pwd from nfc_admin_member 
+		where admin_member_id=#{id}	
+	</select>
+</mapper>

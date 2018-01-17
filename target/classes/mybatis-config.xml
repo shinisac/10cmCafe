@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<mappers>
+		<mapper resource="nfc/sql/ordermenuSql.xml"/>
+		<mapper resource="nfc/sql/orderSql.xml"/>
+		<mapper resource="nfc/sql/invenSql.xml"/>
+		<mapper resource="nfc/sql/warehousingSql.xml"/>
+		<mapper resource="nfc/sql/baljuSql.xml"/>
+		<mapper resource="nfc/sql/s_memberSql.xml"/>
+		<mapper resource="nfc/sql/admin_menuSql.xml"/>
+		<mapper resource="nfc/sql/admin_categorySql.xml"/>
+		<mapper resource="nfc/sql/admin_baljuSql.xml"/>
+		<mapper resource="nfc/sql/admin_memberSql.xml"/>
+		<mapper resource="nfc/sql/shopSql.xml"/>
+		<mapper resource="nfc/sql/memberSql.xml"/>
+		<mapper resource="nfc/sql/bbsSql.xml" />
+		<mapper resource="nfc/sql/bookSql.xml" />
+	</mappers>
+</configuration>

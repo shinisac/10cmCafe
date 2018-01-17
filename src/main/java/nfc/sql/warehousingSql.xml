@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nfc.warehousing">
+   <select id="whShop" parameterType="Map" resultType="nfc.warehousing.model.ShopDTO">
+		 select * from(select rownum as rnum,a.* from (select * from nfc_shop order by shop_idx)a)b 
+   </select>
+   <select id="whList" parameterType="Map" resultType="nfc.warehousing.model.WarehousingDTO">
+		select * from
+		(select rownum as rnum,a.* from
+		(select * from nfc_wh where shop_idx=#{shop_idx} order by wh_idx desc)a)b
+		where rnum<![CDATA[>=]]>#{startnum} 
+		and rnum<![CDATA[<=]]>#{endnum}
+	</select>
+	
+	<select id="whTotalCnt" resultType="int">
+		select count(*) from nfc_wh
+	</select>
+	
+	<select id="whContent" parameterType="int" resultType="nfc.warehousing.model.WarehousingDTO">
+		select * from nfc_wh where wh_idx=#{wh_idx}
+	</select>
+	
+	<select id="whUpdate1" parameterType="int" resultType="nfc.warehousing.model.WarehousingDTO">
+		select * from nfc_wh where wh_idx=#{wh_idx}
+	</select>
+	
+	<update id="whUpdate2" parameterType="nfc.warehousing.model.WarehousingDTO">
+		update nfc_wh
+			set material_idx=#{material_idx}, material_name=#{material_name}, 
+			material_size=#{material_size}, material_price=#{material_price}, 
+			material_amount=#{material_amount}, material_bigo=#{material_bigo}
+			where wh_idx=#{wh_idx}
+	</update>
+	
+	<delete id="whDel" parameterType="int">
+		delete from nfc_wh where wh_idx=#{wh_idx}
+	</delete>
+	
+	<select id="getRefMax" resultType="int">
+		select max(material_ref) from nfc_wh
+	</select>
+	
+	<select id="whSearch" parameterType="Map" resultType="nfc.warehousing.model.WarehousingDTO">
+		select * from(select rownum as rnum,a.* 
+		from (select * from nfc_wh
+		where material_date between to_date(#{start},'YYYY/MM/DD') 
+		and to_date(#{end},'YYYY/MM/DD')+1 
+		and shop_idx=#{shop_idx}
+		order by wh_idx desc)a)b 
+	</select>
+	<insert id="whWrite" parameterType="nfc.warehousing.model.WarehousingDTO">
+		insert into nfc_wh values(nfc_wh_idx.nextval,
+		#{shop_idx},
+		#{material_idx},
+		#{material_name},
+		#{material_size},
+		#{material_price},
+		#{material_amount},
+		'입고완료',
+		sysdate,
+		#{material_bigo}
+		)
+	</insert>
+</mapper>

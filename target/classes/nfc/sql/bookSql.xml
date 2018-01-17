@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="nfc.book">
+  <!-- 북마크 검증 -->
+ 
+  <select id="bookMarkCheck" parameterType="Map" resultType="int">
+	select count(*) from nfc_shop_book where member_idx=#{member_idx} and shop_idx=#{shop_idx}
+  
+  </select>
+  
+  <!-- 즐겨찾기 추가 -->
+  <insert id="bookMarkAdd" parameterType="Map" >
+  	insert into nfc_shop_book values(#{member_idx},#{shop_idx},sysdate)
+  </insert>
+  
+  <!-- 즐겨찾기 삭제 -->
+  <delete id="bookMarkDel" parameterType="Map">
+	delete nfc_shop_book where member_idx=#{member_idx} and shop_idx=#{shop_idx}
+  </delete>
+  
+  <!-- 즐겨찾기 갯수확인 -->
+  <select id="getMyBookMark" parameterType="int" resultType="int">
+	select count(*) from nfc_shop_book where member_idx=#{member_idx}
+  </select>
+  
+  <!-- 즐겨찾기 리스트 -->
+  <select id="bookList" parameterType="Map" resultType="nfc.book.model.BookDTO">
+
+	select * from
+	(select rownum as rnum,c.* from
+	(select a.*,b.shop_name,shop_img from nfc_shop_book a, nfc_shop b where
+		a.shop_idx=b.shop_idx and a.member_idx=#{member_idx} order by book_date desc)c)d
+	where rnum<![CDATA[>=]]>#{startnum}
+	and rnum<![CDATA[<=]]>#{endnum}  
+
+	
+  </select>
+  
+  
+  <!-- 북마크 검증 -->
+ 
+  <select id="bookMarkMenuCheck" parameterType="Map" resultType="int">
+	select count(*) from nfc_menu_book where (member_idx=#{member_idx}  and menu_idx=#{menu_idx})
+  
+  </select>
+  
+  <!-- 즐겨찾기 추가 -->
+  <insert id="bookMarkMenuAdd" parameterType="Map" >
+  	insert into nfc_menu_book values(#{member_idx},#{menu_idx},sysdate)
+  </insert>
+  
+  <!-- 즐겨찾기 삭제 -->
+  <delete id="bookMarkMenuDel" parameterType="Map">
+	delete nfc_menu_book where (member_idx=#{member_idx} and menu_idx=#{menu_idx})
+  </delete>
+  
+  <!-- 즐겨찾기 갯수확인 -->
+  <select id="getMyBookMarkMenu" parameterType="int" resultType="int">
+	select count(*) from nfc_menu_book where member_idx=#{member_idx}
+  </select>
+  
+  <!-- 즐겨찾기 리스트 -->
+  <select id="bookMarkMenu" parameterType="Map" resultType="nfc.book.model.BookMenuDTO">
+
+	select * from
+	(select rownum as rnum,c.* from
+	(select a.*,b.menu_name,menu_price,menu_img from nfc_menu_book a, nfc_menu b where
+		a.menu_idx=b.menu_idx and a.member_idx=#{member_idx} order by menubook_date desc)c)d
+	where rnum<![CDATA[>=]]>#{startnum}
+	and rnum<![CDATA[<=]]>#{endnum}  
+	
+  </select>  
+  
+  <select id="bookMenuList" resultType="nfc.book.model.BookMenuDTO" parameterType="int">
+  	select a.menu_idx from nfc_menu_book a,nfc_menu b where a.menu_idx=b.menu_idx and  a.member_idx=#{member_idx}
+  </select>
+  </mapper>

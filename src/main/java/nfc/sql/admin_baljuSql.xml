@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nfc.admin.balju">
+   	<select id="adBaljuShop" parameterType="Map" resultType="nfc.warehousing.model.ShopDTO">
+		 select * from(select rownum as rnum,a.* from (select * from nfc_shop order by shop_idx)a)b 
+   	</select>
+   	
+   	<select id="adBaljuList" parameterType="Map" resultType="nfc.admin.balju.model.BaljuDTO">
+   		select * from 
+		(select rownum as rnum,a.* from
+		(select * from nfc_balju where shop_idx=#{shop_idx} and balju_state='발주신청' order by balju_date desc)a)b
+		where rnum<![CDATA[>=]]>#{startnum}
+		and rnum<![CDATA[<=]]>#{endnum}
+   	</select>
+   	
+   	<select id="adBaljuList2" parameterType="Map" resultType="nfc.admin.balju.model.BaljuDTO">
+   		select * from 
+		(select rownum as rnum,a.* from
+		(select * from nfc_balju where shop_idx=#{shop_idx} and balju_state='발주완료' order by balju_date desc)a)b
+		where rnum<![CDATA[>=]]>#{startnum}
+		and rnum<![CDATA[<=]]>#{endnum}
+   	</select>
+   	
+   	<select id="adBaljuTotalCnt" parameterType="int" resultType="int">
+		select count(*) from nfc_balju where shop_idx=#{shop_idx} and balju_state='발주신청'
+	</select>
+	
+	<select id="adBaljuTotalCnt2" parameterType="int" resultType="int">
+		select count(*) from nfc_balju where shop_idx=#{shop_idx} and balju_state='발주완료'
+	</select>
+	
+	<select id="adBaljuContent" parameterType="int" resultType="nfc.admin.balju.model.Balju_MaterialDTO">
+		select * from nfc_balju_material
+		where balju_idx=#{balju_idx}
+	</select>
+	
+	<update id="adBaljuOk" parameterType="int">
+		update nfc_balju set balju_state='발주완료' where balju_idx=#{balju_idx}
+	</update>
+</mapper>

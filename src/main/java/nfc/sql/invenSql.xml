@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nfc.inven">
+	<select id="invenShop" parameterType="Map" resultType="nfc.warehousing.model.ShopDTO">
+		 select * from(select rownum as rnum,a.* from (select * from nfc_shop order by shop_idx)a)b 
+   	</select>
+
+	<select id="invenList" parameterType="Map" resultType="nfc.inven.model.InvenDTO">
+		select * from
+		(select rownum as rnum,a.* from 
+		(select * from nfc_jego where shop_idx=#{shop_idx} order by material_idx)a)b
+		where rnum<![CDATA[>=]]>#{startnum}
+		and rnum<![CDATA[<=]]>#{endnum}
+	</select>
+	
+	<select id="invenDetailList" parameterType="int" resultType="nfc.inven.model.InvenDTO">
+		select * from nfc_jego 
+		where jego_idx = #{idx}
+	
+	</select>
+	
+	<select id="invenTotalCnt" parameterType="int" resultType="int">
+		select count(*) from nfc_jego where shop_idx=#{idx}
+	</select>
+	
+	<update id="invenUpdate" parameterType="Map">
+		update nfc_jego 
+		set material_state=#{level},material_amount=#{amount},material_bigo=#{bigo} 
+		where jego_idx=#{idx}
+	</update>
+	
+	<select id="search" parameterType="Map" resultType="nfc.inven.model.InvenDTO">
+		select * from(select rownum as rnum,a.* 
+		from (select * from nfc_jego
+		where material_date between to_date(#{start},'YYYY/MM/DD') 
+		and to_date(#{end},'YYYY/MM/DD')+1 
+		and shop_idx=#{shop_idx}
+		order by jego_idx desc)a)b 
+	</select>
+</mapper>

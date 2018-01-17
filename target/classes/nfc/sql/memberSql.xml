@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nfc.member">
+	<insert id="memberAdd" parameterType="nfc.member.model.MemberDTO">
+		insert into nfc_member
+		values(nfc_member_idx.nextval,'대기',#{member_phone},#{member_email},#{member_pwd},0,#{member_name},sysdate,sysdate,#{member_key})
+	</insert>
+	<!-- 회원 idx 가져오기 -->
+	<select id="memberIdx" parameterType="String" resultType="int">
+		select
+		member_idx from nfc_member where member_email=#{member_email}
+	</select>
+
+	<select id="emailCheck" resultType="int" parameterType="String">
+		select
+		count(*) from nfc_member where member_email=#{member_email}
+	</select>
+
+	<select id="emailStatus" resultType="int" parameterType="String">
+		select
+		count(*) from nfc_member where member_key = #{key}
+	</select>
+
+	<update id="checkJoin" parameterType="String">
+		update nfc_member set
+		member_state='일반',member_key='' where member_key=#{key}
+	</update>
+
+	<select id="phoneCheck" resultType="int" parameterType="String">
+		select
+		count(*) from nfc_member where member_phone=#{member_phone}
+	</select>
+	<!-- 아이디에 대한 암호화 패스워드 가져오기 -->
+	<select id="getPwd" parameterType="String" resultType="String">
+		select member_pwd from nfc_member where member_email=#{member_email}
+	</select>
+	<select id="loginOk" resultType="int" parameterType="Map">
+		select
+		count(*) from nfc_member where member_email=#{member_email} and
+		member_pwd=#{member_pwd}
+	</select>
+	<select id="loginOk2" resultType="int" parameterType="Map">
+		select
+		count(*) from nfc_member where member_email=#{member_email} and
+		member_pwd=#{member_pwd} and member_state='일반'
+	</select>
+	<select id="idFind" resultType="nfc.member.model.MemberDTO"
+		parameterType="Map">
+		select * from nfc_member where
+		member_name=#{member_name} and member_phone=#{member_phone}
+	</select>
+
+	<select id="pwdCheck" resultType="nfc.member.model.MemberDTO"
+		parameterType="Map">
+		select * from nfc_member where
+		member_name=#{member_name} and member_email=#{member_email}
+	</select>
+	<update id="pwdChange" parameterType="Map">
+		update nfc_member set
+		member_pwd=#{member_pwd} where member_email=#{member_email}
+	</update>
+
+	<!-- my page -->
+	<select id="myPage" parameterType="String" resultType="nfc.member.model.MemberDTO">
+		select *
+		from nfc_member where member_email=#{member_email}
+	</select>
+	<!-- 회원정보 -->
+	<select id="member_info" parameterType="int"
+		resultType="nfc.member.model.MemberDTO">
+		select * from nfc_member where member_idx=#{idx}
+	</select>
+	<update id="memberOut" parameterType="String">
+		update nfc_member
+		set
+		member_state='탈퇴', member_deldate=sysdate where
+		member_email=#{member_email}
+	</update>
+	<!-- nfc point -->
+	<select id="myPoint" parameterType="Map" resultType="nfc.point.model.PointDTO">
+		select * from
+		(select rownum as rnum,c.* from
+		(select a.*,b.shop_name from nfc_point a, nfc_shop b where
+		a.point_shop=b.shop_idx and a.point_member=#{idx} order by point_idx
+		desc)c)d
+		where rnum<![CDATA[>=]]>#{startnum}
+		and rnum<![CDATA[<=]]>#{endnum}
+	</select>	
+		<!-- 포인트 적립관련 업데이트 -->
+		<update id="savePoint" parameterType="Map">
+			update nfc_member set
+			member_point=member_point+#{savePoint} where
+			member_email=#{member_email}
+		</update>
+		<!-- 포인트 사용관련 업데이트 -->
+		<update id="usePoint" parameterType="Map">
+			update nfc_member set
+			member_point=member_point-#{usePoint} where
+			member_email=#{member_email}
+		</update>
+		<!-- 토탈 포인트 관련 -->
+		<select id="getPoint" parameterType="int" resultType="int">
+			select
+			member_point from nfc_member where member_idx=#{idx}
+		</select>
+		<!-- 다시 주문할수 있는 리스트내역 -->
+		<select id="beforeOrderListForm" parameterType="Map"
+			resultType="nfc.order.model.OrderDTO">
+
+
+			select a.*,b.shop_name from nfc_order a, nfc_shop b where
+			a.shop_idx=b.shop_idx and a.member_idx=#{idx}
+		</select>
+
+		<!-- 회원목록 개수 -->
+
+		<select id="getMemberTotal" resultType="int">
+			select count(*) from
+			nfc_member where member_state in('일반','정지')
+		</select>
+
+		<select id="getMemberFindTotal" resultType="int" parameterType="Map">
+			select count(*) from nfc_member
+			<include refid="search"></include>
+
+		</select>
+
+		<select id="getMemberOutTotal" resultType="int">
+			select count(*) from
+			nfc_member where member_state='탈퇴'
+		</select>
+
+
+		<select id="getMemberOutFindTotal" resultType="int"
+			parameterType="Map">
+			select count(*) from nfc_member
+			<include refid="searchOut"></include>
+		</select>
+
+
+		<!-- 관리자페이지 회원목록 리스트 -->
+		<select id="admin_memberList" resultType="nfc.member.model.MemberDTO"
+			parameterType="Map">
+			select * from
+			(select rownum as rnum,a.* from
+			(select * from nfc_member order by member_idx desc)a)b
+			where rnum<![CDATA[>=]]>#{startnum}
+			and rnum<![CDATA[<=]]>#{endnum}
+		</select>
+		<!-- 관리자 회원 검색 -->
+		<select id="admin_memberFind" parameterType="Map"
+			resultType="nfc.member.model.MemberDTO">
+			select * from
+			(select rownum as rnum,a.* from
+			(select * from nfc_member
+			<include refid="search"></include>
+			)a)b
+			where rnum<![CDATA[>=]]>#{startnum}
+			and rnum<![CDATA[<=]]>#{endnum}
+		</select>
+
+		<sql id="search">
+			<choose>
+				<!-- 검색이 아닌 그냥 진입 -->
+				<when test="sel=='null'">
+					WHERE member_state in('일반','정지') order by member_idx desc
+				</when>
+
+				<when test="sel == 'member_date'">
+					where member_state in ('일반','정지') and (member_date between
+					to_date(#{keyword},'YYYY/MM/DD') and
+					(to_date(#{keyword},'YYYY/MM/DD')+1)) order by member_idx desc
+
+				</when>
+
+				<!-- 검색옵션이 전체 검색일 경우 -->
+				<when test="sel == 'all'">
+
+					<choose>
+						<when test="keyword==''">
+							where member_state in('일반','정지') order by member_idx desc
+						</when>
+
+
+						<otherwise>
+							where member_state in('일반','정지') and (member_email like
+							'%'||#{keyword}||'%' OR member_name like '%'||#{keyword}||'%' OR
+							member_phone like '%'||#{keyword}||'%' ) order by member_idx desc
+						</otherwise>
+
+					</choose>
+				</when>
+				<!-- 전체 검색이 아닐 경우 -->
+				<otherwise>
+					where member_state in('일반','정지') and ${sel} like '%'||#{keyword}||'%'
+					order by member_idx desc
+				</otherwise>
+			</choose>
+		</sql>
+
+		<!-- 탈퇴 회원 목록 -->
+		<select id="memberOutList" resultType="nfc.member.model.MemberDTO"
+			parameterType="Map">
+
+			select * from
+			(select rownum as rnum,a.* from
+			(select * from nfc_member where member_state='탈퇴' order by member_idx
+			desc)a)b
+			where rnum<![CDATA[>=]]>#{startnum}
+			and rnum<![CDATA[<=]]>#{endnum}
+		</select>
+		<!-- 탈퇴 회원 검색기능 -->
+		<select id="admin_memberOutFind" resultType="nfc.member.model.MemberDTO"
+			parameterType="Map">
+			select * from
+			(select rownum as rnum,a.* from
+			(select * from nfc_member
+			<include refid="searchOut"></include>
+			)a)b
+			where rnum<![CDATA[>=]]>#{startnum}
+			and rnum<![CDATA[<=]]>#{endnum}
+		</select>
+		<sql id="searchOut">
+			<choose>
+				<!-- 검색이 아닌 그냥 진입 -->
+				<when test="keyword==''">
+					where member_state='탈퇴' order by member_idx desc
+				</when>
+				<!-- 검색옵션이 전체 검색일 경우 -->
+				<when test="sel == 'all'">
+					where member_state='탈퇴' and (member_email like '%'||#{keyword}||'%' OR
+					member_name like '%'||#{keyword}||'%' OR member_phone like
+					'%'||#{keyword}||'%' ) order by member_idx desc
+				</when>
+				<when test="sel == 'member_date'">
+					where #{sel} between to_date (member_date between
+					to_date(#{keyword},'YYYY/MM/DD') and
+					(to_date(#{keyword},'YYYY/MM/DD')+1))
+				</when>
+				<!-- 전체 검색이 아닐 경우 -->
+				<otherwise>
+					where member_state='탈퇴' and ${sel} like '%'||#{keyword}||'%' order by
+					member_idx desc
+				</otherwise>
+			</choose>
+		</sql>
+
+		<!-- 관리자에서 포인트 변경 -->
+		<update id="member_PointGive" parameterType="map">
+			update nfc_member set member_point=member_point+#{point}
+			<include refid="pointGive"></include>
+		</update>
+
+		<sql id="pointGive">
+			<if test="idx!='0'">
+				where member_idx=#{idx}
+			</if>
+		</sql>
+
+		<!-- 포인트변경시 적립내용 -->
+		<insert id="member_pointUpdate" parameterType="map">
+			insert into nfc_point
+			values(nfc_point_idx.nextval,#{idx},#{point},0,sysdate,0,#{point_content})
+		</insert>
+
+
+		<sql id="pointUpdate">
+			<if test="idx!='0'">
+
+			</if>
+		</sql>
+
+		<select id="getMemberIdxTotal" resultType="nfc.member.model.MemberDTO">
+			select member_idx from nfc_member where member_state in('일반')
+		</select>
+		   <select id="getMyPointTotal" resultType="int" parameterType="int">
+      select count(*) from nfc_point where point_member=#{idx}
+   </select>
+   
+   <delete id="admin_memberDel" parameterType="int" >
+		delete nfc_member where member_idx=#{member_idx}
+   </delete>
+</mapper>

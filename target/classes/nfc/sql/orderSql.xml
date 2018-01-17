@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nfc.order">
+   <select id="salesShop" parameterType="Map" resultType="nfc.warehousing.model.ShopDTO">
+		 select * from(select rownum as rnum,a.* from (select * from nfc_shop order by shop_idx)a)b  
+   </select>
+   <select id="salesTotalList" parameterType="Map" resultType="nfc.order.model.OrderDTO">
+	   	select * from
+		(select rownum as rnum,c.* from
+		(select a.*, b.shop_name 
+			from nfc_order a, nfc_shop b
+			where order_state='주문완료' and a.shop_idx=b.shop_idx order by order_idx desc)c)d
+			where rnum<![CDATA[>=]]>#{startnum} 
+			and rnum<![CDATA[<=]]>#{endnum}	
+   </select>
+   <select id="salesTotalSearch" parameterType="Map" resultType="nfc.order.model.OrderDTO">
+      select * from(select rownum as rnum,c.* 
+      from (select a.*, b.shop_name 
+			from nfc_order a, nfc_shop b
+			where order_state='주문완료' and a.shop_idx=b.shop_idx
+            and order_date between to_date(#{start},'YYYY/MM/DD') 
+            and to_date(#{end},'YYYY/MM/DD')
+            and order_state='주문완료'
+            order by order_idx)c)b
+   </select>
+   <select id="salesTotalSearchPrice" parameterType="Map" resultType="nfc.order.model.OrderDTO">
+      select sum(order_price) order_price from(select rownum as rnum,a.* 
+      from (select * from nfc_order
+      where order_date between to_date(#{start},'YYYY/MM/DD') 
+      and to_date(#{end},'YYYY/MM/DD')
+      and order_state='주문완료'
+      order by shop_idx, order_idx)a)b
+   </select>
+	<select id="salesList" parameterType="Map" resultType="nfc.order.model.OrderDTO">
+      select * from
+		(select rownum as rnum,a.* from
+		(select * from nfc_order where shop_idx=#{shop_idx} and order_state='주문완료' order by order_idx desc)a)b
+		where rnum<![CDATA[>=]]>#{startnum} 
+		and rnum<![CDATA[<=]]>#{endnum}
+    </select>
+    <select id="salesTotalCnt" resultType="int">
+		select count(*) from nfc_order
+	</select>
+	<select id="todayTotalPrice" resultType="int">
+    	select decode(sum(order_price),null,0,sum(order_price)) from nfc_order where TRUNC(order_date)=TRUNC(sysdate)
+    </select>
+    <select id="todayTotalCount" resultType="int">
+    	select count(*) from nfc_order where TRUNC(order_date)=TRUNC(sysdate)
+    </select>
+    <select id="todayPrice" resultType="int">
+    	select decode(sum(order_price),null,0,sum(order_price)) from nfc_order where TRUNC(order_date)=TRUNC(sysdate) and shop_idx=#{idx}
+    </select>
+    <select id="todayCount" resultType="int">
+    	select count(*) from nfc_order where TRUNC(order_date)=TRUNC(sysdate) and shop_idx=#{idx}
+    </select>
+    <select id="salesSearch" parameterType="Map" resultType="nfc.order.model.OrderDTO">
+      select * from(select rownum as rnum,a.* 
+      from (select * from nfc_order
+      where order_date between to_date(#{start},'YYYY/MM/DD') 
+      and to_date(#{end},'YYYY/MM/DD')
+      and shop_idx=#{shop_idx}
+      and order_state='주문완료'
+      order by order_idx)a)b 
+   </select>
+   <select id="salesSearchPrice" parameterType="Map" resultType="nfc.order.model.OrderDTO">
+      select NVL(sum(order_price),0) order_price from(select rownum as rnum,a.* 
+      from (select * from nfc_order
+      where order_date between to_date(#{start},'YYYY/MM/DD') 
+      and to_date(#{end},'YYYY/MM/DD')
+      and shop_idx=#{shop_idx}
+      and order_state='주문완료'
+      order by shop_idx, order_idx)a)b
+   </select>
+   <select id="shop_name" parameterType="Map" resultType="nfc.warehousing.model.ShopDTO">
+   		select shop_name from nfc_shop where shop_idx=#{shop_idx}
+   </select>
+   
+   
+   <select id="monthPrice1" resultType="nfc.order.model.MonthDTO">
+   	SELECT nvl2(substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),0) "ja",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),0) "fa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),0) "march",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),0) "ap",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),0) "ma",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),0) "june",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),0) "ju",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),0) "au",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),0) "sa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),0) "oc",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),0) "no",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),0) "de"           
+         FROM nfc_order
+         WHERE order_date between '2018/01/01' and '2018/12/31' and shop_idx=#{shop_idx}
+   </select>
+   <select id="monthPrice2" parameterType="int" resultType="nfc.order.model.MonthDTO">
+   		SELECT nvl2(substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),0) "ja",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),0) "fa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),0) "march",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),0) "ap",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),0) "ma",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),0) "june",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),0) "ju",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),0) "au",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),0) "sa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),0) "oc",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),0) "no",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),0) "de"           
+         FROM nfc_order
+         WHERE order_date between '2017/01/01' and '2017/12/31' and shop_idx=#{shop_idx}
+   </select>
+   <select id="monthPrice3" resultType="nfc.order.model.MonthDTO">
+   	SELECT nvl2(substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),0) "ja",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),0) "fa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),0) "march",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),0) "ap",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),0) "ma",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),0) "june",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),0) "ju",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),0) "au",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),0) "sa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),0) "oc",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),0) "no",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),0) "de"           
+         FROM nfc_order
+         WHERE order_date between '2016/01/01' and '2016/12/31' and shop_idx=#{shop_idx}
+   </select>
+   
+   
+   <select id="monthTotalPrice1" resultType="nfc.order.model.MonthDTO">
+   	SELECT nvl2(substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),0) "ja",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),0) "fa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),0) "march",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),0) "ap",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),0) "ma",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),0) "june",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),0) "ju",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),0) "au",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),0) "sa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),0) "oc",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),0) "no",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),0) "de"           
+         FROM nfc_order
+         WHERE order_date between '2017/01/01' and '2017/12/31'
+   </select>
+   <select id="monthTotalPrice2" resultType="nfc.order.model.MonthDTO">
+   	SELECT nvl2(substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),0) "ja",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),0) "fa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),0) "march",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),0) "ap",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),0) "ma",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),0) "june",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),0) "ju",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),0) "au",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),0) "sa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),0) "oc",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),0) "no",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),0) "de"           
+         FROM nfc_order
+         WHERE order_date between '2016/01/01' and '2016/12/31'
+   </select>
+   <select id="monthTotalPrice3" resultType="nfc.order.model.MonthDTO">
+   	SELECT nvl2(substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date,'MM'),'01', order_price,0)),0,3),0) "ja",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '02', order_price,0)),0,3),0) "fa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '03', order_price,0)),0,3),0) "march",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '04', order_price,0)),0,3),0) "ap",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '05', order_price,0)),0,3),0) "ma",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '06', order_price,0)),0,3),0) "june",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '07', order_price,0)),0,3),0) "ju",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '08', order_price,0)),0,3),0) "au",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '09', order_price,0)),0,3),0) "sa",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '10', order_price,0)),0,3),0) "oc",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '11', order_price,0)),0,3),0) "no",
+           nvl2(substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),substr(sum(DECODE(TO_CHAR(order_date, 'MM'), '12', order_price,0)),0,3),0) "de"           
+         FROM nfc_order
+         WHERE order_date between '2015/01/01' and '2015/12/31'
+   </select>
+
+	<insert id="orderinfo"  parameterType="nfc.order.model.OrderDTO">
+		insert into nfc_order values(nfc_order_idx.nextval,#{shop_idx},sysdate,#{order_pay},#{order_price},'예약준비',#{member_idx})
+	</insert>	
+	<insert id="ordermenu"  parameterType="Map">
+		insert into nfc_order_menu values((select max(order_idx) from nfc_order),
+		#{dto.shop_idx},'예약접수',sysdate,(select nvl(max(order_menu_turn)+1,0) from nfc_order_menu),
+		#{odto.order_menu_idx},#{odto.order_menu_name},#{odto.order_menu_amount},#{odto.order_menu_price},
+		#{odto.order_menu_optiona},#{odto.order_menu_optionb},#{odto.order_menu_optionc})
+	</insert>	
+	<select id="memberpoint" parameterType="int" resultType="nfc.member.model.MemberDTO">
+		select * from nfc_member where member_idx = #{loginidx}
+	</select>		
+	<insert id="pointsaving"  parameterType="nfc.point.model.PointDTO">
+		insert into nfc_point values(nfc_point_idx.nextval,#{point_member},#{point_save},0,sysdate,#{point_shop},null)
+	</insert>
+	<insert id="pointusing"  parameterType="nfc.point.model.PointDTO">
+		insert into nfc_point values(nfc_point_idx.nextval,#{point_member},0,#{point_use},sysdate,#{point_shop},null)
+	</insert>	
+	<update id="point_member" parameterType="Map">
+		update nfc_member set member_point = member_point-#{point} where member_idx=#{member}
+	</update>
+</mapper> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
